@@ -1,3 +1,25 @@
+function getCliente() {
+    // Solicitamos nombre del cliente para realizar la factura.
+    let nombreCliente = "";
+
+    while (!nombreCliente || nombreCliente.trim() === "") {
+        nombreCliente = prompt("Ingrese el nombre del cliente:");
+
+        // Validamos que el nombre no esté vacío o contenga solo espacios.
+        if (!nombreCliente || nombreCliente.trim() === "") {
+            alert("El nombre del cliente no puede estar vacío. Intente nuevamente.");
+        }
+    }
+
+    // Creamos un objeto cliente con el nombre ingresado (Por el momento solo guardamos el nombre).
+    const cliente = { 
+        nombre: nombreCliente.trim() 
+    };  
+    alert(`La factura será emitida al cliente ${cliente.nombre}, comencemos a cargar los productos para generar su factura.`);
+
+    return cliente; // Retornamos el objeto cliente con el nombre ingresado.
+}
+
 // Función para cargar productos.
 function cargarProductos() {
     let productos = []; // Array para guardar los productos (Cada producto será un objeto).
@@ -52,24 +74,14 @@ function mostrarResumen(cliente, productos, totales) {
 
 // EJECUCIÓN DEL SIMULADOR
 
-// Solicitamos nombre del cliente para realizar la factura.
-let nombreCliente = "";
+let continuar = true;
 
-while (!nombreCliente || nombreCliente.trim() === "") {
-    nombreCliente = prompt("Ingrese el nombre del cliente:");
+while (continuar) {
+    let cliente = getCliente(); // Llamamos a la función que se encarga de obtener los datos del cliente.
+    let productosFactura = cargarProductos(); // Llamamos a la función que se encarga de cargar los productos de la factura dentro de un array.
+    let totalesFactura = calcularTotales(productosFactura); // Llamamos a la función que calcula los totales de la factura (Subtotal, IVA y Total).
+    mostrarResumen(cliente, productosFactura, totalesFactura); // Llamamos a la función que muestra el resumen de la factura al cliente.
 
-    // Validamos que el nombre no esté vacío o contenga solo espacios.
-    if (!nombreCliente || nombreCliente.trim() === "") {
-        alert("El nombre del cliente no puede estar vacío. Intente nuevamente.");
-    }
+    // Preguntamos al usuario si desea cargar otra factura.
+    continuar = confirm("¿Desea cargar otra factura?")
 }
-
-// Creamos un objeto cliente con el nombre ingresado (Por el momento solo guardamos el nombre).
-const cliente = { 
-    nombre: nombreCliente.trim() 
-};  
-alert(`La factura será emitida al cliente ${cliente.nombre}, comencemos a cargar los productos para generar su factura.`);
-
-productosFactura = cargarProductos(); // Llamamos a la función que se encarga de cargar los productos de la factura dentro de un array.
-let totalesFactura = calcularTotales(productosFactura); // Llamamos a la función que calcula los totales de la factura (Subtotal, IVA y Total).
-mostrarResumen(cliente, productosFactura, totalesFactura); // Llamamos a la función que muestra el resumen de la factura al cliente.
