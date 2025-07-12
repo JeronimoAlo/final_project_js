@@ -1,5 +1,4 @@
-// Variables globales.
-let IVA;
+let IVA; // Variable global para manejar el cálculo de IVA.
 let historialFacturas = []; // Acá guardaremos todas las facturas generadas.
 
 // ------------------ CLASES ------------------- //
@@ -14,6 +13,18 @@ const agregarProductoBtn = document.getElementById("agregarProductoBtn");
 const historialDiv = document.getElementById('historialFacturas');
 
 // ------------------ FUNCIONES ------------------- //
+
+// Función para mostrar logs de factura (Puede ser éxito o error).
+function mostrarMensajeFactura(texto, tipo = "exito") {
+    mensajeFactura.textContent = texto;
+    mensajeFactura.className = `mensaje-factura ${tipo}`; // Ajustamos la clase según el tipo, esto nos permite jugar con los estilos.
+    mensajeFactura.style.display = "block";
+
+    // Ocultamos el mensaje luego de 2 segundos.
+    setTimeout(() => {
+        mensajeFactura.style.display = "none";
+    }, 2000);
+}
 
 function getCliente() {
     const nombreCliente = document.getElementById("nombreCliente").value.trim();
@@ -107,21 +118,6 @@ function crearFactura(cliente, productos, totales) {
 
     return factura; // Retornamos el objeto factura creado.
 }
-
-// Función para mostrar logs de factura (Puede ser éxito o error).
-function mostrarMensajeFactura(texto, tipo = "exito") {
-    const mensajeFactura = document.getElementById("mensajeFactura");
-
-    mensajeFactura.textContent = texto;
-    mensajeFactura.className = `mensaje-factura ${tipo}`; // Ajustamos la clase según el tipo, esto nos permite jugar con los estilos.
-    mensajeFactura.style.display = "block";
-
-    // Ocultamos el mensaje luego de 2 segundos.
-    setTimeout(() => {
-        mensajeFactura.style.display = "none";
-    }, 2000);
-}
-
 
 // Función que se encargar de mostrar el historial de facturas (Se llama a esta función desde cargarHistorial, factura a factura)
 function mostrarResumen(factura, index) {
@@ -258,7 +254,6 @@ function eventoBotonEliminarFactura(boton, historialDiv, index) {
         historialFacturas.splice(index, 1); // Eliminamos la factura del array.
 
         localStorage.setItem("historialFacturas", JSON.stringify(historialFacturas)); // Sobreescribimos el item en el localStorage.
-        historialDiv.innerHTML = ""; // Limpiamos el DIV.
 
         cargarHistorial(); // Volvemos a cargar el historial
     });
