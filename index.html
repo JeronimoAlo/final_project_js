@@ -27,15 +27,13 @@
             <form id="form-factura">
                 <fieldset>
                     <legend>Datos del cliente</legend>
-                    <label for="nombreCliente">Nombre:</label>
+                    <label for="nombreCliente">Nombre / Razon social:</label>
                     <input type="text" id="nombreCliente" name="nombreCliente" required>
                 </fieldset>
 
                 <fieldset>
                     <legend>Productos</legend>
-                    <div id="productos-container">
-                        <!-- Productos se insertarán aquí -->
-                    </div>
+                    <div id="productos-container"></div>
                     <button type="button" id="agregarProductoBtn">Agregar producto</button>
                 </fieldset>
 
@@ -46,9 +44,7 @@
         <!-- Sección: Historial de Facturas -->
         <section id="seccion-historial">
             <h2>📋 Historial de facturas</h2>
-            <div id="historialFacturas">
-                <!-- Se renderizará historial aquí -->
-            </div>
+            <div id="historialFacturas"></div>
         </section>
 
         <!-- Sección: Cambiar % IVA -->
@@ -59,6 +55,7 @@
                 <input type="number" id="nuevoIVA" name="nuevoIVA" min="0" max="100" step="0.1" required>
                 <button type="submit">Actualizar IVA</button>
             </form>
+            <div id="mensajeIVA" class="mensaje-iva"></div>
         </section>
     </main>
 

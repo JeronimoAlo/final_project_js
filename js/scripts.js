@@ -1,48 +1,67 @@
-let IVA = 0.21; // 21% de IVA para todos los productos.
+// Variables globales.
+let IVA;
 let historialFacturas = []; // Acá guardaremos todas las facturas generadas.
 
+// ------------------ ELEMENTOS DEL DOM ------------------- //
+
+const formFactura = document.getElementById("form-factura");
+const formCambioIVA = document.getElementById("form-iva");
+const productosContainer = document.getElementById("productos-container");
+const agregarProductoBtn = document.getElementById("agregarProductoBtn");
+
+
+// ------------------ FUNCIONES ------------------- //
+
 function getCliente() {
-    // Solicitamos nombre del cliente para realizar la factura.
-    let nombreCliente = "";
+    const nombreCliente = document.getElementById("nombreCliente").value.trim();
 
-    while (!nombreCliente || nombreCliente.trim() === "") {
-        nombreCliente = prompt("Ingrese el nombre del cliente:");
-
-        // Validamos que el nombre no esté vacío o contenga solo espacios.
-        if (!nombreCliente || nombreCliente.trim() === "") {
-            alert("El nombre del cliente no puede estar vacío. Intente nuevamente.");
-        }
+    if (!nombreCliente) {
+        alert("El nombre del cliente no puede estar vacío.");
+        return null;
     }
 
-    // Creamos un objeto cliente con el nombre ingresado (Por el momento solo guardamos el nombre).
-    const cliente = { 
-        nombre: nombreCliente.trim() 
-    };  
-    alert(`La factura será emitida al cliente ${cliente.nombre}, comencemos a cargar los productos para generar su factura.`);
-
-    return cliente; // Retornamos el objeto cliente con el nombre ingresado.
+    return { nombre: nombreCliente }; // Devolvemos un objeto cliente.
 }
 
-// Función para cargar productos.
-function cargarProductos() {
-    let productos = []; // Array para guardar los productos (Cada producto será un objeto).
-    let continuar = true; // Aseguramos que el ciclo se ejecute al menos una vez (Se podría usar un do-while)
+function agregarProducto() {
+    const div = document.createElement("div");
 
-    while (continuar) {
-        let nombre = prompt("Nombre del producto:");
-        let cantidad = parseInt(prompt("Cantidad:")); // Precisamos que sea un entero.
-        let precio = parseFloat(prompt("Precio unitario (S/IVA):")); // Precisamos que sea un float.
+    div.classList.add("producto-item");
+    div.innerHTML = `
+        <label>Nombre del producto:</label>
+        <input type="text" name="nombreProducto" required>
 
-        if (!isNaN(cantidad) && !isNaN(precio)) {
-            productos.push({ nombre, cantidad, precio }); // Agregamos el producto al array de productos.
-        } else {
-            alert("Cantidad o precio inválido. Intente de nuevo."); // Validamos que los datos sean correctos para no obtener productos con datos erróneos.
+        <label>Cantidad:</label>
+        <input type="number" name="cantidadProducto" min="1" required>
+
+        <label>Precio unitario (S/IVA):</label>
+        <input type="number" name="precioProducto" min="0" step="0.01" required>
+
+        <hr>
+    `;
+
+    productosContainer.appendChild(div);
+}
+
+// Función para leer los productos cargados desde el DOM
+function leerProductos() {
+    const items = productosContainer.querySelectorAll(".producto-item");
+    let productosLeidos = [];
+
+    for (let item of items) {
+        const nombre = item.querySelector("input[name='nombreProducto']").value.trim();
+        const cantidad = parseInt(item.querySelector("input[name='cantidadProducto']").value);
+        const precio = parseFloat(item.querySelector("input[name='precioProducto']").value);
+
+        if (!nombre || isNaN(cantidad) || isNaN(precio)) {
+            alert("Datos inválidos en uno de los productos.");
+            return null;
         }
 
-        continuar = confirm("¿Deseás cargar otro producto?");
+        productosLeidos.push({ nombre, cantidad, precio });
     }
 
-    return productos; // Retornamos el array de productos cargados.
+    return productosLeidos;
 }
 
 // Función para calcular el total con IVA para la factura en cuestión.
@@ -71,12 +90,17 @@ function crearFactura(cliente, productos, totales) {
 
     historialFacturas.push(factura); // Agregamos la factura al historial de facturas generadas.
 
+    // Actualizamos el localStorage
+    localStorage.setItem("historialFacturas", JSON.stringify(historialFacturas));
+
     return factura; // Retornamos el objeto factura creado.
 }
 
-// Función para mostrar el resumen final de la factura.
+
 function mostrarResumen(factura) {
-    let resumen = `Factura para: ${factura.cliente.nombre}\n\n Productos cargados:\n`; // Variable para almacenar el resumen de la factura.
+    const historialDiv = document.getElementById('historialFacturas');
+
+    let resumen = `Factura para: ${factura.cliente.nombre}\n\nProductos cargados:\n`; // Variable para almacenar el resumen de la factura.
 
     factura.productos.forEach((prod, index) => { // Iteramos sobre los productos para mostrar sus detalles.
         resumen += `${index + 1}. ${prod.nombre} - ${prod.cantidad} x $${prod.precio}\n`;
@@ -84,76 +108,97 @@ function mostrarResumen(factura) {
 
     resumen += `\nSubtotal: $${factura.totales.subtotal.toFixed(2)}`; // Agregamos el subtotal al resumen.
     resumen += `\nIVA (${(IVA * 100).toFixed(1)}%): $${factura.totales.ivaTotal.toFixed(2)}`; // Agregamos el IVA al resumen.
-    // resumen += `\nIVA (21%): $${totales.ivaTotal.toFixed(2)}`; // Agregamos el IVA al resumen.
     resumen += `\nTotal: $${factura.totales.total.toFixed(2)}`; // Agregamos el total al resumen.
 
-    // Agregamos el resumen a la factura.
+    // Guardamos el resumen dentro del objeto factura
     factura.resumenTexto = resumen;
-    
-    alert(resumen);
+
+    // Mostramos el resumen en el historial (debajo del formulario)
+    const resumenElem = document.createElement('pre');
+    resumenElem.textContent = resumen;
+    historialDiv.appendChild(resumenElem);
 }
 
-function mostrarHistorialFacturas() {
-    if (historialFacturas.length === 0) {
-        alert("No hay facturas registradas en esta sesión.");
-    } else {
-        let historialCompleto = "📋 HISTORIAL DE FACTURAS\n\n";
-        console.log("Facturas registradas:", historialFacturas);
-        historialFacturas.forEach((factura, index) => {
-            historialCompleto += `🧾 Factura #${index + 1} - Fecha: ${factura.fechaEmision.toLocaleString()}\n`;
-            historialCompleto += `${factura.resumenTexto}\n\n-----------------------\n\n`;
-        });
+function cargarHistorial() {
+    const historial = localStorage.getItem("historialFacturas");
 
-        alert(historialCompleto); // TODO: Implementar una mejor visualización del historial de facturas dentro del HTML (El alert lo corta si es muy largo).
+    if (historial) {
+        historialFacturas = JSON.parse(historial);
+
+        // Mostramos cada factura en pantalla
+        historialFacturas.forEach(factura => {
+            mostrarResumen(factura);
+        });
     }
 }
 
-function cambiarIVA() {
-    let nuevoIVA = parseFloat(prompt("Ingrese el nuevo porcentaje de IVA (ej: 10.5 para 10.5%):"));
+function cargarIVA() {
+    const ivaGuardado = localStorage.getItem("valorIVA");
+
+    if (ivaGuardado !== null) {
+        IVA = parseFloat(ivaGuardado);
+    }
+}
+
+// ------------------ EVENTOS ------------------- //
+
+agregarProductoBtn.addEventListener("click", agregarProducto);
+
+formFactura.addEventListener("submit", function (elem) {
+    elem.preventDefault();
+
+    if (typeof IVA !== "number" || isNaN(IVA)) {
+        alert("Error: El valor del IVA no está definido o es inválido.");
+        
+        return null;
+    }
+
+    const cliente = getCliente();
+    if (!cliente) return;
+
+    const productosFactura = leerProductos();
+    if (!productosFactura || productosFactura.length === 0) {
+        alert("Debe agregar al menos un producto válido.");
+        return;
+    }
+
+    const totalesFactura = calcularTotales(productosFactura);
+    const factura = crearFactura(cliente, productosFactura, totalesFactura);
+
+    mostrarResumen(factura);
+
+    formFactura.reset();
+    productosContainer.innerHTML = "";
+});
+
+formCambioIVA.addEventListener("submit", function (elem) {
+    elem.preventDefault();
+
+    const nuevoIVA = parseFloat(document.getElementById("nuevoIVA").value);
+    const mensajeCambioIVA = document.getElementById("mensajeIVA");
+
+    mensajeCambioIVA.style.display = "block";
 
     if (!isNaN(nuevoIVA) && nuevoIVA >= 0 && nuevoIVA <= 100) {
-        IVA = nuevoIVA / 100; // Lo convertimos a decimal
-        alert(`El IVA ha sido actualizado a ${nuevoIVA}%.`);
+        IVA = nuevoIVA / 100; // Lo convertimos a decimal.
+
+        // Actualizamos el localStorage
+        localStorage.setItem("valorIVA", JSON.stringify(IVA));
+
+        mensajeCambioIVA.textContent = `El IVA ha sido actualizado a ${nuevoIVA}%.`;
+        mensajeCambioIVA.className = "mensaje-iva exito";
     } else {
-        alert("Valor inválido. Ingrese un número entre 0 y 100.");
+        mensajeCambioIVA.textContent = "Valor inválido. Ingrese un número entre 0 y 100.";
+        mensajeCambioIVA.className = "mensaje-iva error";
     }
-}
 
-// Menú de opciones para el usuario.
-function menu() {
-    let continuar = true; // Variable para controlar el ciclo del menú.
+    // Ocultamos el mensaje luego de 2 segundos.
+    setTimeout(() => {
+        mensajeCambioIVA.style.display = "none";
+    }, 2000);
+})
 
-    while (continuar) {
-        let opcion = prompt("Seleccione una opción:\n1. Cargar factura\n2. Ver historial de facturas\n3. Cambiar % de IVA\n4. Salir"); // Mostramos el menú de opciones al usuario.
+// ------------------ APP ------------------- //
 
-        switch (opcion) {
-            case '1':
-                let cliente = getCliente(); // Llamamos a la función que se encarga de obtener los datos del cliente.
-                let productosFactura = cargarProductos(); // Llamamos a la función que se encarga de cargar los productos de la factura dentro de un array.
-                let totalesFactura = calcularTotales(productosFactura); // Llamamos a la función que calcula los totales de la factura (Subtotal, IVA y Total).
-                let factura = crearFactura(cliente, productosFactura, totalesFactura); // Llamamos a la función que crea la factura con los datos ingresados.
-
-                mostrarResumen(factura); // Llamamos a la función que muestra el resumen de la factura al cliente.
-                break;
-            case '2':
-                mostrarHistorialFacturas(); // Llamamos a la función que muestra el historial de facturas generadas.
-                break;
-            case '3':
-                cambiarIVA(); // Llamamos a la función que permite cambiar el porcentaje de IVA.
-                break;
-            case '4':
-                continuar = false; // Salimos del ciclo si el usuario selecciona salir.
-                break;
-            default:
-                alert("Opción no válida. Intente nuevamente."); // Validamos que la opción ingresada sea correcta.
-        }
-    }
-}
-
-// EJECUCIÓN DEL SIMULADOR
-function iniciarSimulador() {
-    alert("Bienvenido al simulador de facturación. Vamos a generar una factura para un cliente.");
-    menu(); // Llamamos a la función que muestra el menú de opciones.
-}
-
-// iniciarSimulador();
+cargarIVA();
+cargarHistorial();
