@@ -2,25 +2,28 @@
 let IVA;
 let historialFacturas = []; // Acá guardaremos todas las facturas generadas.
 
+// ------------------ CLASES ------------------- //
+
 // ------------------ ELEMENTOS DEL DOM ------------------- //
 
 const formFactura = document.getElementById("form-factura");
 const formCambioIVA = document.getElementById("form-iva");
 const productosContainer = document.getElementById("productos-container");
 const agregarProductoBtn = document.getElementById("agregarProductoBtn");
-
+const historialDiv = document.getElementById('historialFacturas');
 
 // ------------------ FUNCIONES ------------------- //
 
 function getCliente() {
     const nombreCliente = document.getElementById("nombreCliente").value.trim();
+    const numeroIdentificacion = document.getElementById("numeroIdentificacion").value;
 
-    if (!nombreCliente) {
-        alert("El nombre del cliente no puede estar vacío.");
+    if (!nombreCliente || !numeroIdentificacion) {
+        alert("Por favor verifique los datos ingresados del cliente.");
         return null;
     }
 
-    return { nombre: nombreCliente }; // Devolvemos un objeto cliente.
+    return { nombre: nombreCliente, numeroIdentificacion: numeroIdentificacion }; // Devolvemos un objeto cliente.
 }
 
 function agregarProducto() {
@@ -37,21 +40,29 @@ function agregarProducto() {
         <label>Precio unitario (S/IVA):</label>
         <input type="number" name="precioProducto" min="0" step="0.01" required>
 
+        <button type="button" class="btn-eliminar-prod">🗑️</button>
         <hr>
     `;
 
     productosContainer.appendChild(div);
+
+    const btnEliminar = div.querySelector(".btn-eliminar-prod");
+
+    // Agregamos un evento para eliminar el div por colpeto
+    btnEliminar.addEventListener("click", () => {
+        div.remove();
+    });
 }
 
-// Función para leer los productos cargados desde el DOM
+// Función para leer los productos cargados desde el DOM.
 function leerProductos() {
-    const items = productosContainer.querySelectorAll(".producto-item");
+    const productosFactura = productosContainer.querySelectorAll(".producto-item");
     let productosLeidos = [];
 
-    for (let item of items) {
-        const nombre = item.querySelector("input[name='nombreProducto']").value.trim();
-        const cantidad = parseInt(item.querySelector("input[name='cantidadProducto']").value);
-        const precio = parseFloat(item.querySelector("input[name='precioProducto']").value);
+    for (let producto of productosFactura) {
+        const nombre = producto.querySelector("input[name='nombreProducto']").value.trim(); // Buscamos un input que tenga como name nombreProducto.
+        const cantidad = parseInt(producto.querySelector("input[name='cantidadProducto']").value);
+        const precio = parseFloat(producto.querySelector("input[name='precioProducto']").value);
 
         if (!nombre || isNaN(cantidad) || isNaN(precio)) {
             alert("Datos inválidos en uno de los productos.");
@@ -96,38 +107,62 @@ function crearFactura(cliente, productos, totales) {
     return factura; // Retornamos el objeto factura creado.
 }
 
+// Función que se encargar de mostrar el historial de facturas (Se llama a esta función desde cargarHistorial, factura a factura)
+function mostrarResumen(factura, index) {
+    const tarjeta = document.createElement("div");
+    tarjeta.classList.add("factura-card");
 
-function mostrarResumen(factura) {
-    const historialDiv = document.getElementById('historialFacturas');
+    const titulo = document.createElement("h3");
+    titulo.textContent = `Factura para: ${factura.cliente.nombre}`;
+    tarjeta.appendChild(titulo);
 
-    let resumen = `Factura para: ${factura.cliente.nombre}\n\nProductos cargados:\n`; // Variable para almacenar el resumen de la factura.
+    const fecha = document.createElement("p");
+    fecha.textContent = `Fecha de emisión: ${new Date(factura.fechaEmision).toLocaleString()}`;
+    tarjeta.appendChild(fecha);
 
-    factura.productos.forEach((prod, index) => { // Iteramos sobre los productos para mostrar sus detalles.
-        resumen += `${index + 1}. ${prod.nombre} - ${prod.cantidad} x $${prod.precio}\n`;
+    const lista = document.createElement("ul");
+    factura.productos.forEach((prod, index) => {
+        const item = document.createElement("li");
+
+        item.textContent = `${index + 1}. ${prod.nombre} - ${prod.cantidad} x $${prod.precio.toFixed(2)}`; // Vamos armando un listado de todos los productos involucrados en la factura.
+        lista.appendChild(item);
     });
+    tarjeta.appendChild(lista);
 
-    resumen += `\nSubtotal: $${factura.totales.subtotal.toFixed(2)}`; // Agregamos el subtotal al resumen.
-    resumen += `\nIVA (${(IVA * 100).toFixed(1)}%): $${factura.totales.ivaTotal.toFixed(2)}`; // Agregamos el IVA al resumen.
-    resumen += `\nTotal: $${factura.totales.total.toFixed(2)}`; // Agregamos el total al resumen.
+    const subtotal = document.createElement("p");
+    subtotal.textContent = `Subtotal: $${factura.totales.subtotal.toFixed(2)}`;
+    tarjeta.appendChild(subtotal);
 
-    // Guardamos el resumen dentro del objeto factura
-    factura.resumenTexto = resumen;
+    const iva = document.createElement("p");
+    iva.textContent = `IVA (${(factura.ivaAplicado * 100).toFixed(1)}%): $${factura.totales.ivaTotal.toFixed(2)}`;
+    tarjeta.appendChild(iva);
 
-    // Mostramos el resumen en el historial (debajo del formulario)
-    const resumenElem = document.createElement('pre');
-    resumenElem.textContent = resumen;
-    historialDiv.appendChild(resumenElem);
+    const total = document.createElement("p");
+    total.innerHTML = `<strong>Total: $${factura.totales.total.toFixed(2)}</strong>`;
+    tarjeta.appendChild(total);
+
+    // Agregamos un botón para eliminar la factura del historial.
+    const btnEliminar = document.createElement("button");
+    btnEliminar.textContent = "Eliminar";
+    btnEliminar.classList.add("btn-eliminar-factura");
+
+    eventoBotonEliminarFactura(btnEliminar, historialDiv, index); // Esta función se encarga de cargar el evento que dispara la eliminación.
+    
+    tarjeta.appendChild(btnEliminar);
+
+    historialDiv.appendChild(tarjeta); // Colocamos una tarjeta debajo de la otra
 }
 
 function cargarHistorial() {
+    historialDiv.innerHTML = "";
     const historial = localStorage.getItem("historialFacturas");
 
     if (historial) {
         historialFacturas = JSON.parse(historial);
 
         // Mostramos cada factura en pantalla
-        historialFacturas.forEach(factura => {
-            mostrarResumen(factura);
+        historialFacturas.forEach((factura, index) => {
+            mostrarResumen(factura, index);
         });
     }
 }
@@ -149,7 +184,7 @@ formFactura.addEventListener("submit", function (elem) {
 
     if (typeof IVA !== "number" || isNaN(IVA)) {
         alert("Error: El valor del IVA no está definido o es inválido.");
-        
+
         return null;
     }
 
@@ -165,7 +200,7 @@ formFactura.addEventListener("submit", function (elem) {
     const totalesFactura = calcularTotales(productosFactura);
     const factura = crearFactura(cliente, productosFactura, totalesFactura);
 
-    mostrarResumen(factura);
+    cargarHistorial();
 
     formFactura.reset();
     productosContainer.innerHTML = "";
@@ -197,6 +232,19 @@ formCambioIVA.addEventListener("submit", function (elem) {
         mensajeCambioIVA.style.display = "none";
     }, 2000);
 })
+
+function eventoBotonEliminarFactura(boton, historialDiv, index) {
+    boton.addEventListener("click", () => {
+        if (confirm("¿Estás seguro de que querés eliminar esta factura?")) {
+            historialFacturas.splice(index, 1); // Eliminamos la factura del array.
+
+            localStorage.setItem("historialFacturas", JSON.stringify(historialFacturas)); // Sobreescribimos el item en el localStorage.
+            historialDiv.innerHTML = ""; // Limpiamos el DIV.
+
+            cargarHistorial(); // Volvemos a cargar el historial
+        }
+    });
+}
 
 // ------------------ APP ------------------- //
 
