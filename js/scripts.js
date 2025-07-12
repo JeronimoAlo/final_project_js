@@ -156,4 +156,4 @@ function iniciarSimulador() {
     menu(); // Llamamos a la función que muestra el menú de opciones.
 }
 
-iniciarSimulador();
+// iniciarSimulador();

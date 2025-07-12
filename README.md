@@ -9,7 +9,7 @@ Este proyecto consiste en una aplicación web interactiva que simula un sistema 
 ## 🛠️ Tecnologías utilizadas
 
 - **HTML5** – Estructura de la interfaz.
-- **CSS3 / Bootstrap** – Estilizado visual.
+- **CSS3** – Estilizado visual.
 - **JavaScript** – Lógica principal del simulador.
 
 ---

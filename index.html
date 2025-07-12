@@ -8,7 +8,63 @@
     <script src="js/scripts.js" defer></script>
 </head>
 <body>
-    <h1>Simulador de Factura Electrónica para Argentina</h1>
-    <p>Aún no contamos con front-end.</p>
+    <header>
+        <h1>Simulador de Factura Electrónica para Argentina</h1>
+        <nav>
+            <ul>
+                <li><a href="#seccion-factura" id="nav-generar-factura">Generar factura</a></li>
+                <li><a href="#seccion-historial" id="nav-historial-facturas">Historial de facturas</a></li>
+                <li><a href="#seccion-iva" id="nav-cambiar-iva">Cambiar % de IVA</a></li>
+            </ul>
+        </nav>
+        <hr>
+    </header>
+
+    <main>
+        <!-- Sección: Generar Factura -->
+        <section id="seccion-factura">
+            <h2>Generar nueva factura</h2>
+            <form id="form-factura">
+                <fieldset>
+                    <legend>Datos del cliente</legend>
+                    <label for="nombreCliente">Nombre:</label>
+                    <input type="text" id="nombreCliente" name="nombreCliente" required>
+                </fieldset>
+
+                <fieldset>
+                    <legend>Productos</legend>
+                    <div id="productos-container">
+                        <!-- Productos se insertarán aquí -->
+                    </div>
+                    <button type="button" id="agregarProductoBtn">Agregar producto</button>
+                </fieldset>
+
+                <button type="submit">Generar factura</button>
+            </form>
+        </section>
+
+        <!-- Sección: Historial de Facturas -->
+        <section id="seccion-historial">
+            <h2>📋 Historial de facturas</h2>
+            <div id="historialFacturas">
+                <!-- Se renderizará historial aquí -->
+            </div>
+        </section>
+
+        <!-- Sección: Cambiar % IVA -->
+        <section id="seccion-iva">
+            <h2>Cambiar porcentaje de IVA</h2>
+            <form id="form-iva">
+                <label for="nuevoIVA">Nuevo % de IVA:</label>
+                <input type="number" id="nuevoIVA" name="nuevoIVA" min="0" max="100" step="0.1" required>
+                <button type="submit">Actualizar IVA</button>
+            </form>
+        </section>
+    </main>
+
+    <footer>
+        <hr>
+        <p>&copy; 2025 Simulador de Facturación - Proyecto Final JavaScript - Jerónimo Gabriel Alo</p>
+    </footer>
 </body>
 </html>
