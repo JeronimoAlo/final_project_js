@@ -7,6 +7,7 @@ let historialFacturas = []; // Acá guardaremos todas las facturas generadas.
 // ------------------ ELEMENTOS DEL DOM ------------------- //
 
 const formFactura = document.getElementById("form-factura");
+const mensajeFactura = document.getElementById("mensajeFactura");
 const formCambioIVA = document.getElementById("form-iva");
 const productosContainer = document.getElementById("productos-container");
 const agregarProductoBtn = document.getElementById("agregarProductoBtn");
@@ -19,7 +20,7 @@ function getCliente() {
     const numeroIdentificacion = document.getElementById("numeroIdentificacion").value;
 
     if (!nombreCliente || !numeroIdentificacion) {
-        alert("Por favor verifique los datos ingresados del cliente.");
+        mostrarMensajeFactura("Por favor verifique los datos ingresados del cliente.", "error");
         return null;
     }
 
@@ -65,7 +66,7 @@ function leerProductos() {
         const precio = parseFloat(producto.querySelector("input[name='precioProducto']").value);
 
         if (!nombre || isNaN(cantidad) || isNaN(precio)) {
-            alert("Datos inválidos en uno de los productos.");
+            mostrarMensajeFactura("Datos inválidos en uno de los productos.", "error");
             return null;
         }
 
@@ -106,6 +107,21 @@ function crearFactura(cliente, productos, totales) {
 
     return factura; // Retornamos el objeto factura creado.
 }
+
+// Función para mostrar logs de factura (Puede ser éxito o error).
+function mostrarMensajeFactura(texto, tipo = "exito") {
+    const mensajeFactura = document.getElementById("mensajeFactura");
+
+    mensajeFactura.textContent = texto;
+    mensajeFactura.className = `mensaje-factura ${tipo}`; // Ajustamos la clase según el tipo, esto nos permite jugar con los estilos.
+    mensajeFactura.style.display = "block";
+
+    // Ocultamos el mensaje luego de 2 segundos.
+    setTimeout(() => {
+        mensajeFactura.style.display = "none";
+    }, 2000);
+}
+
 
 // Función que se encargar de mostrar el historial de facturas (Se llama a esta función desde cargarHistorial, factura a factura)
 function mostrarResumen(factura, index) {
@@ -182,23 +198,27 @@ agregarProductoBtn.addEventListener("click", agregarProducto);
 formFactura.addEventListener("submit", function (elem) {
     elem.preventDefault();
 
+    mensajeFactura.style.display = "none"; // Ocultamos el mensaje anterior, si es que había.
+
     if (typeof IVA !== "number" || isNaN(IVA)) {
-        alert("Error: El valor del IVA no está definido o es inválido.");
+        mostrarMensajeFactura("Error: El valor del IVA no está definido o es inválido.", "error");
 
         return null;
     }
 
     const cliente = getCliente();
-    if (!cliente) return;
+    if (!cliente) return; // Si no hay cliente, cortamos la ejecución de la función.
 
     const productosFactura = leerProductos();
     if (!productosFactura || productosFactura.length === 0) {
-        alert("Debe agregar al menos un producto válido.");
+        mostrarMensajeFactura("Debe agregar al menos un producto válido.", "error");
         return;
     }
 
     const totalesFactura = calcularTotales(productosFactura);
     const factura = crearFactura(cliente, productosFactura, totalesFactura);
+
+    mostrarMensajeFactura("Factura generada correctamente.", "exito");
 
     cargarHistorial();
 
@@ -235,14 +255,12 @@ formCambioIVA.addEventListener("submit", function (elem) {
 
 function eventoBotonEliminarFactura(boton, historialDiv, index) {
     boton.addEventListener("click", () => {
-        if (confirm("¿Estás seguro de que querés eliminar esta factura?")) {
-            historialFacturas.splice(index, 1); // Eliminamos la factura del array.
+        historialFacturas.splice(index, 1); // Eliminamos la factura del array.
 
-            localStorage.setItem("historialFacturas", JSON.stringify(historialFacturas)); // Sobreescribimos el item en el localStorage.
-            historialDiv.innerHTML = ""; // Limpiamos el DIV.
+        localStorage.setItem("historialFacturas", JSON.stringify(historialFacturas)); // Sobreescribimos el item en el localStorage.
+        historialDiv.innerHTML = ""; // Limpiamos el DIV.
 
-            cargarHistorial(); // Volvemos a cargar el historial
-        }
+        cargarHistorial(); // Volvemos a cargar el historial
     });
 }
 

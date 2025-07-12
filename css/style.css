@@ -186,7 +186,7 @@ button:hover {
     margin: 4px 0;
 }
 
-.mensaje-iva {
+.mensaje-iva, .mensaje-factura {
     margin-top: 10px;
     padding: 10px;
     border-radius: 5px;
@@ -194,18 +194,17 @@ button:hover {
     display: none;
 }
 
-.mensaje-iva.exito {
+.mensaje-iva.exito, .mensaje-factura.exito {
     background-color: #d4edda;
     color: #155724;
     border: 1px solid #c3e6cb;
 }
 
-.mensaje-iva.error {
+.mensaje-iva.error, .mensaje-factura.error {
     background-color: #f8d7da;
     color: #721c24;
     border: 1px solid #f5c6cb;
 }
-
 
 footer {
     text-align: center;
