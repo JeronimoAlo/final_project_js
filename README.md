@@ -1,4 +1,4 @@
-# 💻 Proyecto Final JavaScript
+# 💻 Proyecto JavaScript
 
 ## 🧾 Simulador de Facturación Electrónica (Argentina)
 
