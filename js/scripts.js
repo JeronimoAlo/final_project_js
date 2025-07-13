@@ -1,7 +1,89 @@
-let IVA; // Variable global para manejar el cálculo de IVA.
-let historialFacturas = []; // Acá guardaremos todas las facturas generadas.
-
 // ------------------ CLASES ------------------- //
+
+class Factura {
+    constructor(cliente, productos, ivaAplicado) {
+        this.cliente = cliente;
+        this.productos = productos;
+        this.ivaAplicado = ivaAplicado;
+        this.fechaEmision = new Date();
+    }
+
+    calcularSubtotal() {
+        return this.productos.reduce((acumulador, prod) => acumulador + prod.calcularSubtotal(), 0);
+    }
+
+    calcularIVA() {
+        return this.calcularSubtotal() * this.ivaAplicado;
+    }
+
+    calcularTotal() {
+        return this.calcularSubtotal() + this.calcularIVA();
+    }
+
+    getTotales() {
+        return {
+            subtotal: this.calcularSubtotal(),
+            ivaTotal: this.calcularIVA(),
+            total: this.calcularTotal()
+        };
+    }
+}
+
+class Producto {
+    constructor(nombre, cantidad, precio) {
+        this.nombre = nombre;
+        this.cantidad = cantidad;
+        this.precio = precio;
+    }
+
+    calcularSubtotal() {
+        return this.cantidad * this.precio;
+    }
+}
+
+class HistorialFacturas {
+    constructor() {
+        this.facturas = this.cargar();
+    }
+
+    agregarFactura(factura) {
+        this.facturas.push(factura);
+        this.guardar();
+    }
+
+    eliminarFactura(index) {
+        this.facturas.splice(index, 1);
+        this.guardar();
+    }
+
+    guardar() {
+        localStorage.setItem("historialFacturas", JSON.stringify(this.facturas));
+    }
+
+    cargar() {
+        const data = localStorage.getItem("historialFacturas");
+        if (!data) return []; // Si no hay data lo inicializamos como un array vacío.
+
+        const parsedData = JSON.parse(data);
+
+        // Instanciamos nuevamente las facturas y los productos de cada una para mantener los métodos de clase.
+        return parsedData.map(factura => {
+            const productosInstanciados = factura.productos.map(
+                producto => new Producto(producto.nombre, producto.cantidad, producto.precio)
+            );
+            return new Factura(factura.cliente, productosInstanciados, factura.ivaAplicado, factura.fechaEmision);
+        });
+    }
+
+    obtenerTodas() {
+        return this.facturas;
+    }
+}
+
+// ------------------ VARIABLES GLOBALES ------------------- //
+
+let IVA; // Variable global para manejar el cálculo de IVA.
+let historialFacturas = new HistorialFacturas(); // Acá guardaremos todas las facturas generadas.
 
 // ------------------ ELEMENTOS DEL DOM ------------------- //
 
@@ -35,7 +117,7 @@ function getCliente() {
         return null;
     }
 
-    return { nombre: nombreCliente, numeroIdentificacion: numeroIdentificacion }; // Devolvemos un objeto cliente.
+    return { nombre: nombreCliente, numeroIdentificacion: numeroIdentificacion }; // Devolvemos un objeto con los datos del cliente.
 }
 
 function agregarProducto() {
@@ -87,38 +169,6 @@ function leerProductos() {
     return productosLeidos;
 }
 
-// Función para calcular el total con IVA para la factura en cuestión.
-function calcularTotales(productos) {
-    let subtotal = 0;
-
-    for (let prod of productos) {
-        subtotal += prod.precio * prod.cantidad;
-    }
-
-    let ivaTotal = subtotal * IVA;
-    let total = subtotal + ivaTotal;
-
-    return { subtotal, ivaTotal, total }; // Retornamos un objeto con los totales calculados.
-}
-
-function crearFactura(cliente, productos, totales) {
-    // Creamos un objeto factura con los datos del cliente, productos y totales.
-    const factura = {
-        cliente: cliente,
-        productos: productos,
-        totales: totales,
-        ivaAplicado: IVA,
-        fechaEmision: new Date()
-    };
-
-    historialFacturas.push(factura); // Agregamos la factura al historial de facturas generadas.
-
-    // Actualizamos el localStorage
-    localStorage.setItem("historialFacturas", JSON.stringify(historialFacturas));
-
-    return factura; // Retornamos el objeto factura creado.
-}
-
 // Función que se encargar de mostrar el historial de facturas (Se llama a esta función desde cargarHistorial, factura a factura)
 function mostrarResumen(factura, index) {
     const tarjeta = document.createElement("div");
@@ -141,16 +191,18 @@ function mostrarResumen(factura, index) {
     });
     tarjeta.appendChild(lista);
 
+    const totalesFactura = factura.getTotales();
+
     const subtotal = document.createElement("p");
-    subtotal.textContent = `Subtotal: $${factura.totales.subtotal.toFixed(2)}`;
+    subtotal.textContent = `Subtotal: $${totalesFactura.subtotal.toFixed(2)}`;
     tarjeta.appendChild(subtotal);
 
     const iva = document.createElement("p");
-    iva.textContent = `IVA (${(factura.ivaAplicado * 100).toFixed(1)}%): $${factura.totales.ivaTotal.toFixed(2)}`;
+    iva.textContent = `IVA (${(factura.ivaAplicado * 100).toFixed(1)}%): $${totalesFactura.ivaTotal.toFixed(2)}`;
     tarjeta.appendChild(iva);
 
     const total = document.createElement("p");
-    total.innerHTML = `<strong>Total: $${factura.totales.total.toFixed(2)}</strong>`;
+    total.innerHTML = `<strong>Total: $${totalesFactura.total.toFixed(2)}</strong>`;
     tarjeta.appendChild(total);
 
     // Agregamos un botón para eliminar la factura del historial.
@@ -167,16 +219,12 @@ function mostrarResumen(factura, index) {
 
 function cargarHistorial() {
     historialDiv.innerHTML = "";
-    const historial = localStorage.getItem("historialFacturas");
 
-    if (historial) {
-        historialFacturas = JSON.parse(historial);
+    const facturas = historialFacturas.obtenerTodas();
 
-        // Mostramos cada factura en pantalla
-        historialFacturas.forEach((factura, index) => {
-            mostrarResumen(factura, index);
-        });
-    }
+    facturas.forEach((factura, index) => {
+        mostrarResumen(factura, index);
+    });
 }
 
 function cargarIVA() {
@@ -205,14 +253,17 @@ formFactura.addEventListener("submit", function (elem) {
     const cliente = getCliente();
     if (!cliente) return; // Si no hay cliente, cortamos la ejecución de la función.
 
-    const productosFactura = leerProductos();
+    const productosFactura = leerProductos(); // Leemos los productos del DIV.
     if (!productosFactura || productosFactura.length === 0) {
         mostrarMensajeFactura("Debe agregar al menos un producto válido.", "error");
         return;
     }
 
-    const totalesFactura = calcularTotales(productosFactura);
-    const factura = crearFactura(cliente, productosFactura, totalesFactura);
+    // Convertimos los datos leídos en instancias de la clase Producto
+    const productos = productosFactura.map(prod => new Producto(prod.nombre, prod.cantidad, prod.precio));
+
+    const nuevaFactura = new Factura(cliente, productos, IVA);
+    historialFacturas.agregarFactura(nuevaFactura);
 
     mostrarMensajeFactura("Factura generada correctamente.", "exito");
 
@@ -251,9 +302,7 @@ formCambioIVA.addEventListener("submit", function (elem) {
 
 function eventoBotonEliminarFactura(boton, historialDiv, index) {
     boton.addEventListener("click", () => {
-        historialFacturas.splice(index, 1); // Eliminamos la factura del array.
-
-        localStorage.setItem("historialFacturas", JSON.stringify(historialFacturas)); // Sobreescribimos el item en el localStorage.
+        historialFacturas.eliminarFactura(index); // Eliminamos la factura del array.
 
         cargarHistorial(); // Volvemos a cargar el historial
     });
