@@ -20,6 +20,7 @@ class Factura {
         return this.calcularSubtotal() + this.calcularIVA();
     }
 
+    // Método utilizado para recopilar los totales de la factura (Por el momento se utiliza para mostrar el resumen).
     getTotales() {
         return {
             subtotal: this.calcularSubtotal(),
@@ -36,6 +37,7 @@ class Producto {
         this.precio = precio;
     }
 
+    // El subtotal se calcula dentro de la clase de productos para mantener cierta cohesión.
     calcularSubtotal() {
         return this.cantidad * this.precio;
     }
@@ -75,7 +77,7 @@ class HistorialFacturas {
         });
     }
 
-    obtenerTodas() {
+    obtenerFacturas() {
         return this.facturas;
     }
 }
@@ -218,12 +220,12 @@ function mostrarResumen(factura, index) {
 }
 
 function cargarHistorial() {
-    historialDiv.innerHTML = "";
+    historialDiv.innerHTML = ""; // Limpiamos el div.
 
-    const facturas = historialFacturas.obtenerTodas();
+    const facturas = historialFacturas.obtenerFacturas();
 
     facturas.forEach((factura, index) => {
-        mostrarResumen(factura, index);
+        mostrarResumen(factura, index); // Mostramos el resumen factura a factura hasta finalizar con el historial.
     });
 }
 
@@ -288,7 +290,7 @@ formCambioIVA.addEventListener("submit", function (elem) {
         localStorage.setItem("valorIVA", JSON.stringify(IVA));
 
         mensajeCambioIVA.textContent = `El IVA ha sido actualizado a ${nuevoIVA}%.`;
-        mensajeCambioIVA.className = "mensaje-iva exito";
+        mensajeCambioIVA.className = "mensaje-iva exito"; // Seteamos la clase para que se muestren correctamente los estilos.
     } else {
         mensajeCambioIVA.textContent = "Valor inválido. Ingrese un número entre 0 y 100.";
         mensajeCambioIVA.className = "mensaje-iva error";
