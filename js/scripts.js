@@ -100,19 +100,21 @@ const historialDiv = document.getElementById('historialFacturas');
 
 // Función para mostrar logs de factura (Puede ser éxito o error).
 function mostrarMensaje(texto, tipo = "exito") {
-    const icono = tipo === "error" ? "error" : "success";
-
-    Swal.fire({
-        icon: icono,
-        title: tipo === "error" ? "¡Error!" : "¡Éxito!",
+    Toastify({
         text: texto,
-        confirmButtonText: 'Aceptar',
-        confirmButtonColor: tipo === "error" ? "#e74c3c" : "#27ae60",
-        backdrop: true,
-        timer: 2000,
-        timerProgressBar: true,
-        showConfirmButton: false
-    });
+        duration: 3000,
+        gravity: "top",
+        position: "right",
+        close: true,
+        style: {
+            background: tipo === "error" ? "#e74c3c" : "#27ae60",
+            color: "#fff",
+            fontWeight: "bold",
+            borderRadius: "8px",
+            padding: "10px 15px",
+            boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)"
+        }
+    }).showToast();
 }
 
 function getCliente() {

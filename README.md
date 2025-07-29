@@ -16,7 +16,7 @@ Este proyecto consiste en una aplicación web interactiva que simula un sistema 
 - ✅ Almacenamiento y visualización del historial de facturas generadas.
 - ✅ Eliminación individual de facturas desde el historial.
 - ✅ Persistencia de datos mediante `localStorage`.
-- ✅ Mensajes de éxito o error para la creación de facturas y configuración de IVA.
+- ✅ Mensajes de éxito o error para la creación de facturas y configuración de IVA con librerías de terceros.
 
 ---
 
@@ -25,6 +25,13 @@ Este proyecto consiste en una aplicación web interactiva que simula un sistema 
 - **HTML5** – Estructura de la interfaz.
 - **CSS3** – Estilizado visual.
 - **JavaScript** – Lógica principal del simulador.
+
+---
+
+## 📚 Librerías utilizadas
+
+- **[Toastify JS](https://apvarun.github.io/toastify-js/)** – Para mostrar notificaciones flotantes personalizadas.
+- **[SweetAlert2](https://sweetalert2.github.io/)** – Para mostrar alertas modales.
 
 ---
 
