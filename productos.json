@@ -1,0 +1,62 @@
+[
+  {
+    "nombre": "Monitor LED 24''",
+    "precio": 120000
+  },
+  {
+    "nombre": "Teclado Mecánico RGB",
+    "precio": 45000
+  },
+  {
+    "nombre": "Mouse Gamer",
+    "precio": 30000
+  },
+  {
+    "nombre": "Notebook HP 15''",
+    "precio": 850000
+  },
+  {
+    "nombre": "Disco SSD 512GB",
+    "precio": 60000
+  },
+  {
+    "nombre": "Impresora Multifunción Epson",
+    "precio": 95000
+  },
+  {
+    "nombre": "Memoria RAM 16GB DDR4",
+    "precio": 38000
+  },
+  {
+    "nombre": "Placa de Video NVIDIA GTX 1660",
+    "precio": 220000
+  },
+  {
+    "nombre": "Fuente de Poder 600W",
+    "precio": 45000
+  },
+  {
+    "nombre": "Gabinete ATX con RGB",
+    "precio": 70000
+  },
+  {
+    "nombre": "Monitor LED 27'' Curvo",
+    "precio": 170000
+  },
+  {
+    "nombre": "Cable HDMI 2.0 de 2 metros",
+    "precio": 5000
+  },
+  {
+    "nombre": "Adaptador WiFi USB",
+    "precio": 8500
+  },
+  {
+    "nombre": "Tablet Samsung 10''",
+    "precio": 190000
+  },
+  {
+    "nombre": "Router WiFi TP-Link",
+    "precio": 25000
+  }
+]

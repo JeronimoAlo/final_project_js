@@ -9,7 +9,7 @@ Este proyecto consiste en una aplicación web interactiva que simula un sistema 
 ## ✨ Funcionalidades
 
 - ✅ Generación de facturas con datos de cliente (nombre/Razón social y DNI/CUIT).
-- ✅ Carga manual de productos (nombre, cantidad, precio unitario sin IVA).
+- ✅ Selección de productos desde un listado predefinido para agilizar la carga.
 - ✅ Eliminación dinámica de productos cargados antes de generar una factura.
 - ✅ Cálculo automático de subtotal, IVA y total de cada factura.
 - ✅ Configuración personalizada del porcentaje de IVA.

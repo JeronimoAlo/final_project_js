@@ -86,6 +86,7 @@ class HistorialFacturas {
 
 let IVA; // Variable global para manejar el cálculo de IVA.
 let historialFacturas = new HistorialFacturas(); // Acá guardaremos todas las facturas generadas.
+let productosDisponibles = []; // Manejo de productos leidos de productos.json.
 
 // ------------------ ELEMENTOS DEL DOM ------------------- //
 
@@ -122,41 +123,87 @@ function getCliente() {
     return { nombre: nombreCliente, numeroIdentificacion: numeroIdentificacion }; // Devolvemos un objeto con los datos del cliente.
 }
 
-function agregarProducto() {
-    const div = document.createElement("div");
-
-    div.classList.add("producto-item");
-    div.innerHTML = `
-        <label>Nombre del producto:</label>
-        <input type="text" name="nombreProducto" required>
-
-        <label>Cantidad:</label>
-        <input type="number" name="cantidadProducto" min="1" required>
-
-        <label>Precio unitario (S/IVA):</label>
-        <input type="number" name="precioProducto" min="0" step="0.01" required>
-
-        <button type="button" class="btn-eliminar-prod">🗑️</button>
-        <hr>
-    `;
-
-    productosContainer.appendChild(div);
-
-    const btnEliminar = div.querySelector(".btn-eliminar-prod");
-
-    // Agregamos un evento para eliminar el div por colpeto
-    btnEliminar.addEventListener("click", () => {
-        div.remove();
-    });
+async function cargarProductosJSON() {
+    const response = await fetch("productos.json"); // Leemos los productos.
+    productosDisponibles = await response.json();
 }
 
-// Función para leer los productos cargados desde el DOM.
+function agregarProducto() {
+    const div = document.createElement("div");
+    div.classList.add("producto-item");
+
+    const select = document.createElement("select");
+    select.name = "nombreProducto";
+    select.required = true;
+
+    const optionDefault = document.createElement("option");
+    optionDefault.value = "";
+    optionDefault.textContent = "-- Seleccione un producto --";
+    select.appendChild(optionDefault);
+
+    productosDisponibles.forEach(prod => {
+        const option = document.createElement("option");
+
+        option.value = prod.nombre;
+        option.textContent = prod.nombre;
+        option.dataset.precio = prod.precio;
+
+        select.appendChild(option);
+    });
+
+    const cantidadInput = document.createElement("input");
+    cantidadInput.type = "number";
+    cantidadInput.name = "cantidadProducto";
+    cantidadInput.min = "1";
+    cantidadInput.required = true;
+    cantidadInput.placeholder = "Cantidad";
+
+    const precioInput = document.createElement("input");
+    precioInput.type = "number";
+    precioInput.name = "precioProducto";
+    precioInput.required = true;
+    precioInput.placeholder = "Precio unitario (S/IVA)";
+
+    // Completamos automáticamente el precio
+    select.addEventListener("change", () => {
+        const selected = select.options[select.selectedIndex];
+        precioInput.value = selected.dataset.precio || "";
+    });
+
+    const eliminarBtn = document.createElement("button"); // Agregamos el botón para eliminar productos de la factura que se está generando.
+    eliminarBtn.type = "button";
+    eliminarBtn.textContent = "🗑️";
+    eliminarBtn.classList.add("btn-eliminar-prod");
+    eliminarBtn.addEventListener("click", () => div.remove());
+
+    const labelProducto = document.createElement("label");
+    labelProducto.textContent = "Producto:";
+
+    const labelCantidad = document.createElement("label");
+    labelCantidad.textContent = "Cantidad:";
+
+    const labelPrecio = document.createElement("label");
+    labelPrecio.textContent = "Precio unitario:";
+
+    div.appendChild(labelProducto);
+    div.appendChild(select);
+    div.appendChild(labelCantidad);
+    div.appendChild(cantidadInput);
+    div.appendChild(labelPrecio);
+    div.appendChild(precioInput);
+    div.appendChild(eliminarBtn);
+    div.appendChild(document.createElement("hr"));
+
+    productosContainer.appendChild(div);
+}
+
+// Función para leer los productos seleccionados desde el DOM.
 function leerProductos() {
     const productosFactura = productosContainer.querySelectorAll(".producto-item");
     let productosLeidos = [];
 
     for (let producto of productosFactura) {
-        const nombre = producto.querySelector("input[name='nombreProducto']").value.trim(); // Buscamos un input que tenga como name nombreProducto.
+        const nombre = producto.querySelector("select[name='nombreProducto']").value.trim(); // Buscamos un input que tenga como name nombreProducto.
         const cantidad = parseInt(producto.querySelector("input[name='cantidadProducto']").value);
         const precio = parseFloat(producto.querySelector("input[name='precioProducto']").value);
 
@@ -312,5 +359,6 @@ function eventoBotonEliminarFactura(boton, historialDiv, index) {
 
 // ------------------ APP ------------------- //
 
+cargarProductosJSON();
 cargarIVA();
 cargarHistorial();
