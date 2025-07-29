@@ -206,6 +206,7 @@ function agregarProducto() {
     const labelPrecio = document.createElement("label");
     labelPrecio.textContent = "Precio unitario:";
 
+    // Agregamos todos los elementos en el orden correspondiente.
     div.appendChild(labelProducto);
     div.appendChild(select);
     div.appendChild(labelCantidad);
@@ -224,7 +225,7 @@ function leerProductos() {
     let productosLeidos = [];
 
     for (let producto of productosFactura) {
-        const nombre = producto.querySelector("select[name='nombreProducto']").value.trim(); // Buscamos un input que tenga como name nombreProducto.
+        const nombre = producto.querySelector("select[name='nombreProducto']").value.trim(); // Buscamos un select que tenga como name nombreProducto.
         const cantidad = parseInt(producto.querySelector("input[name='cantidadProducto']").value);
         const precio = parseFloat(producto.querySelector("input[name='precioProducto']").value);
 
@@ -313,7 +314,7 @@ formFactura.addEventListener("submit", function (elem) {
     elem.preventDefault();
 
     if (typeof IVA !== "number" || isNaN(IVA) || IVA === 0) {
-        mostrarMensaje("Error: El valor del IVA no está definido o es inválido.", "error");
+        mostrarMensaje("El valor del IVA no está definido o es inválido.", "error");
 
         return null;
     }
