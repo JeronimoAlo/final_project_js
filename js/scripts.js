@@ -91,7 +91,6 @@ let productosDisponibles = []; // Manejo de productos leidos de productos.json.
 // ------------------ ELEMENTOS DEL DOM ------------------- //
 
 const formFactura = document.getElementById("form-factura");
-const mensajeFactura = document.getElementById("mensajeFactura");
 const formCambioIVA = document.getElementById("form-iva");
 const productosContainer = document.getElementById("productos-container");
 const agregarProductoBtn = document.getElementById("agregarProductoBtn");
@@ -100,15 +99,20 @@ const historialDiv = document.getElementById('historialFacturas');
 // ------------------ FUNCIONES ------------------- //
 
 // Función para mostrar logs de factura (Puede ser éxito o error).
-function mostrarMensajeFactura(texto, tipo = "exito") {
-    mensajeFactura.textContent = texto;
-    mensajeFactura.className = `mensaje-factura ${tipo}`; // Ajustamos la clase según el tipo, esto nos permite jugar con los estilos.
-    mensajeFactura.style.display = "block";
+function mostrarMensaje(texto, tipo = "exito") {
+    const icono = tipo === "error" ? "error" : "success";
 
-    // Ocultamos el mensaje luego de 2 segundos.
-    setTimeout(() => {
-        mensajeFactura.style.display = "none";
-    }, 2000);
+    Swal.fire({
+        icon: icono,
+        title: tipo === "error" ? "¡Error!" : "¡Éxito!",
+        text: texto,
+        confirmButtonText: 'Aceptar',
+        confirmButtonColor: tipo === "error" ? "#e74c3c" : "#27ae60",
+        backdrop: true,
+        timer: 2000,
+        timerProgressBar: true,
+        showConfirmButton: false
+    });
 }
 
 function getCliente() {
@@ -116,7 +120,7 @@ function getCliente() {
     const numeroIdentificacion = document.getElementById("numeroIdentificacion").value;
 
     if (!nombreCliente || !numeroIdentificacion) {
-        mostrarMensajeFactura("Por favor verifique los datos ingresados del cliente.", "error");
+        mostrarMensaje("Por favor verifique los datos ingresados del cliente.", "error");
         return null;
     }
 
@@ -133,7 +137,13 @@ async function cargarProductosJSON() {
 
         productosDisponibles = await response.json();
     } catch (error) {
-        mostrarMensajeFactura("No se pudieron cargar los productos disponibles.", "error");
+        Swal.fire({
+            icon: 'error',
+            title: 'Error al cargar productos',
+            text: 'No se pudieron cargar los productos disponibles. Verificá el archivo productos.json o la conexión.',
+            footer: `<code>${error.message}</code>`,
+            confirmButtonText: 'Entendido'
+        });
     }
 }
 
@@ -217,7 +227,7 @@ function leerProductos() {
         const precio = parseFloat(producto.querySelector("input[name='precioProducto']").value);
 
         if (!nombre || isNaN(cantidad) || isNaN(precio)) {
-            mostrarMensajeFactura("Datos inválidos en uno de los productos.", "error");
+            mostrarMensaje("Datos inválidos en uno de los productos.", "error");
             return null;
         }
 
@@ -300,10 +310,8 @@ agregarProductoBtn.addEventListener("click", agregarProducto);
 formFactura.addEventListener("submit", function (elem) {
     elem.preventDefault();
 
-    mensajeFactura.style.display = "none"; // Ocultamos el mensaje anterior, si es que había.
-
-    if (typeof IVA !== "number" || isNaN(IVA)) {
-        mostrarMensajeFactura("Error: El valor del IVA no está definido o es inválido.", "error");
+    if (typeof IVA !== "number" || isNaN(IVA) || IVA === 0) {
+        mostrarMensaje("Error: El valor del IVA no está definido o es inválido.", "error");
 
         return null;
     }
@@ -313,7 +321,7 @@ formFactura.addEventListener("submit", function (elem) {
 
     const productosFactura = leerProductos(); // Leemos los productos del DIV.
     if (!productosFactura || productosFactura.length === 0) {
-        mostrarMensajeFactura("Debe agregar al menos un producto válido.", "error");
+        mostrarMensaje("Debe agregar al menos un producto válido.", "error");
         return;
     }
 
@@ -323,7 +331,7 @@ formFactura.addEventListener("submit", function (elem) {
     const nuevaFactura = new Factura(cliente, productos, IVA);
     historialFacturas.agregarFactura(nuevaFactura);
 
-    mostrarMensajeFactura("Factura generada correctamente.", "exito");
+    mostrarMensaje("Factura generada correctamente.", "exito");
 
     cargarHistorial();
 
@@ -335,27 +343,27 @@ formCambioIVA.addEventListener("submit", function (elem) {
     elem.preventDefault();
 
     const nuevoIVA = parseFloat(document.getElementById("nuevoIVA").value);
-    const mensajeCambioIVA = document.getElementById("mensajeIVA");
 
-    mensajeCambioIVA.style.display = "block";
-
-    if (!isNaN(nuevoIVA) && nuevoIVA >= 0 && nuevoIVA <= 100) {
+    if (!isNaN(nuevoIVA) && nuevoIVA > 0 && nuevoIVA <= 100) {
         IVA = nuevoIVA / 100; // Lo convertimos a decimal.
 
         // Actualizamos el localStorage
         localStorage.setItem("valorIVA", JSON.stringify(IVA));
 
-        mensajeCambioIVA.textContent = `El IVA ha sido actualizado a ${nuevoIVA}%.`;
-        mensajeCambioIVA.className = "mensaje-iva exito"; // Seteamos la clase para que se muestren correctamente los estilos.
+        Swal.fire({
+            icon: 'success',
+            title: 'IVA actualizado',
+            text: `El nuevo porcentaje de IVA es ${nuevoIVA}%.`,
+            confirmButtonText: 'Aceptar'
+        });
     } else {
-        mensajeCambioIVA.textContent = "Valor inválido. Ingrese un número entre 0 y 100.";
-        mensajeCambioIVA.className = "mensaje-iva error";
+        Swal.fire({
+            icon: 'error',
+            title: 'Valor inválido',
+            text: 'Por favor ingresá un número válido entre 0 y 100.',
+            confirmButtonText: 'Reintentar'
+        });
     }
-
-    // Ocultamos el mensaje luego de 2 segundos.
-    setTimeout(() => {
-        mensajeCambioIVA.style.display = "none";
-    }, 2000);
 })
 
 function eventoBotonEliminarFactura(boton, historialDiv, index) {
