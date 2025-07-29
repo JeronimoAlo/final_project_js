@@ -124,8 +124,17 @@ function getCliente() {
 }
 
 async function cargarProductosJSON() {
-    const response = await fetch("productos.json"); // Leemos los productos.
-    productosDisponibles = await response.json();
+    try {
+        const response = await fetch("productos.json"); // Leemos los productos.
+
+        if (!response.ok) {
+            throw new Error(`Error al cargar productos: ${response.status}`);
+        }
+
+        productosDisponibles = await response.json();
+    } catch (error) {
+        mostrarMensajeFactura("No se pudieron cargar los productos disponibles.", "error");
+    }
 }
 
 function agregarProducto() {
@@ -359,6 +368,10 @@ function eventoBotonEliminarFactura(boton, historialDiv, index) {
 
 // ------------------ APP ------------------- //
 
-cargarProductosJSON();
-cargarIVA();
-cargarHistorial();
+async function app() {
+    await cargarProductosJSON(); // Esperamos a que se cargue el JSON antes de inicializar las demás variables
+    cargarIVA();
+    cargarHistorial();
+}
+
+app();
